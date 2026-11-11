@@ -49,6 +49,34 @@ namespace EnchantersHandbook::Markers
             return a_entry && AllEffectsKnown(a_entry->GetEnchantment());
         }
 
+        // Diagnostics: how many enchantments and magic effects in the whole game carry the "known"
+        // flag, with a few names. Shows which flag the game really sets when you disenchant.
+        template <class T>
+        std::string DescribeKnown(const char* a_label)
+        {
+            auto* data = RE::TESDataHandler::GetSingleton();
+            if (!data) {
+                return std::string(a_label) + ": no data handler";
+            }
+            int         total = 0;
+            int         known = 0;
+            int         rawBit = 0;
+            std::string names;
+            for (const auto* form : data->GetFormArray<T>()) {
+                if (!form) {
+                    continue;
+                }
+                ++total;
+                rawBit += (static_cast<std::uint32_t>(form->formFlags) >> 6) & 1;
+                if (form->GetKnown()) {
+                    if (++known <= 8) {
+                        names += std::format(" {:08X}:{}", form->GetFormID(), form->GetName());
+                    }
+                }
+            }
+            return std::format("{}: total={} known={} rawBit6={}{}", a_label, total, known, rawBit, names);
+        }
+
         struct Counts
         {
             int total{};
@@ -132,6 +160,8 @@ namespace EnchantersHandbook::Markers
                 if (a_state != lastState) {
                     lastState = a_state;
                     spdlog::info("{}: {}", a_menuName, a_state);
+                    spdlog::info("  game-wide {}", DescribeKnown<RE::EnchantmentItem>("enchantments"));
+                    spdlog::info("  game-wide {}", DescribeKnown<RE::EffectSetting>("magic effects"));
                 }
             };
 
