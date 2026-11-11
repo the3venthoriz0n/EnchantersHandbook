@@ -28,15 +28,70 @@ namespace EnchantersHandbook::Markers
             return base ? base : a_enchantment;
         }
 
-        bool IsKnown(const RE::EnchantmentItem* a_enchantment)
+        using EffectSet = std::unordered_set<const RE::EffectSetting*>;
+
+        // Every magic effect that appears in a known enchantment template. This is what the enchanting
+        // table lets you reuse, so any enchantment made only of these effects is one you can make.
+        // Covers enchantments you made yourself, which do not point at a known template.
+        EffectSet CollectKnownEffects()
         {
-            const auto* templ = TemplateOf(a_enchantment);
-            return templ && (templ->GetKnown() || a_enchantment->GetKnown());
+            EffectSet result;
+            if (auto* data = RE::TESDataHandler::GetSingleton()) {
+                for (const auto* enchantment : data->GetFormArray<RE::EnchantmentItem>()) {
+                    if (!enchantment || !enchantment->GetKnown()) {
+                        continue;
+                    }
+                    for (const auto* effect : enchantment->effects) {
+                        if (effect && effect->baseEffect) {
+                            result.insert(effect->baseEffect);
+                        }
+                    }
+                }
+            }
+            return result;
         }
 
-        bool HasKnownEnchantment(RE::InventoryEntryData* a_entry)
+        bool EffectsKnown(const RE::EnchantmentItem* a_enchantment, const EffectSet& a_known)
         {
-            return a_entry && IsKnown(a_entry->GetEnchantment());
+            if (!a_enchantment || a_enchantment->effects.empty()) {
+                return false;
+            }
+            for (const auto* effect : a_enchantment->effects) {
+                if (!effect || !effect->baseEffect || !a_known.contains(effect->baseEffect)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool IsKnown(const RE::EnchantmentItem* a_enchantment, const EffectSet& a_known)
+        {
+            const auto* templ = TemplateOf(a_enchantment);
+            return templ && (templ->GetKnown() || a_enchantment->GetKnown() || EffectsKnown(a_enchantment, a_known));
+        }
+
+        bool HasKnownEnchantment(RE::InventoryEntryData* a_entry, const EffectSet& a_known)
+        {
+            return a_entry && IsKnown(a_entry->GetEnchantment(), a_known);
+        }
+
+        // Diagnostics: one line describing an enchanted item that was NOT marked.
+        std::string DescribeUnmarked(RE::InventoryEntryData* a_entry, const EffectSet& a_known)
+        {
+            const auto* enchantment = a_entry->GetEnchantment();
+            const auto* base = enchantment->data.baseEnchantment;
+            std::string effects;
+            for (const auto* effect : enchantment->effects) {
+                if (effect && effect->baseEffect) {
+                    effects += std::format(" {:08X}:{}{}", effect->baseEffect->GetFormID(), effect->baseEffect->GetName(),
+                        a_known.contains(effect->baseEffect) ? "(known)" : "");
+                }
+            }
+            return std::format("    unmarked '{}' ench={:08X}:'{}' base={} effects:{}",
+                a_entry->GetDisplayName() ? a_entry->GetDisplayName() : "?",
+                enchantment->GetFormID(), enchantment->GetName(),
+                base ? std::format("{:08X}:'{}' known={}", base->GetFormID(), base->GetName(), base->GetKnown()) : std::string("none"),
+                effects);
         }
 
         // Diagnostics: how many enchantments and magic effects in the whole game carry the "known"
@@ -78,13 +133,15 @@ namespace EnchantersHandbook::Markers
             int alreadyMarked{};
             int marked{};
             int setFailed{};
+            int samples{};
+            std::string sampleText;
 
-            bool operator==(const Counts&) const = default;
+            
         };
 
         // Adds the marker to every list entry whose item has a known enchantment.
         // Returns true if any entry changed.
-        bool MarkItems(RE::ItemList* a_list, const Config::Settings& a_settings, Counts& a_counts)
+        bool MarkItems(RE::ItemList* a_list, const Config::Settings& a_settings, const EffectSet& a_known, Counts& a_counts)
         {
             bool changed = false;
             for (auto* item : a_list->items) {
@@ -97,7 +154,11 @@ namespace EnchantersHandbook::Markers
                     a_counts.enchantmentFlagKnown += enchantment->GetKnown() ? 1 : 0;
                     a_counts.templateKnown += (TemplateOf(enchantment) && TemplateOf(enchantment)->GetKnown()) ? 1 : 0;
                 }
-                if (!HasKnownEnchantment(item->data.objDesc)) {
+                if (!HasKnownEnchantment(item->data.objDesc, a_known)) {
+                    if (item->data.objDesc->GetEnchantment() && a_counts.samples < 12) {
+                        ++a_counts.samples;
+                        a_counts.sampleText += '\n' + DescribeUnmarked(item->data.objDesc, a_known);
+                    }
                     continue;
                 }
                 ++a_counts.known;
@@ -174,10 +235,10 @@ namespace EnchantersHandbook::Markers
             }
 
             Counts     counts;
-            const bool changed = MarkItems(a_list, settings, counts);
+            const bool changed = MarkItems(a_list, settings, CollectKnownEffects(), counts);
             report(std::format(
                 "items={} enchanted={} known={} (enchantmentFlag={} template={}) marked={} alreadyMarked={} noText={} setFailed={}",
-                counts.total, counts.enchanted, counts.known, counts.enchantmentFlagKnown, counts.templateKnown, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed));
+                counts.total, counts.enchanted, counts.known, counts.enchantmentFlagKnown, counts.templateKnown, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed) + counts.sampleText);
 
             if (changed) {
                 // Tell the (SkyUI) list its data changed so it redraws with the new names.

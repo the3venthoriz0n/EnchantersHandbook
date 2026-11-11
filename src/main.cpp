@@ -34,7 +34,7 @@ SKSEPluginLoad(const SKSE::LoadInterface* a_skse)
 {
     SKSE::Init(a_skse);
     SetupLog();
-    spdlog::info("EnchantersHandbook 0.1.3 loading");
+    spdlog::info("EnchantersHandbook 0.1.4 loading");
 
     EnchantersHandbook::Config::Load();
     if (EnchantersHandbook::Config::Get().debug) {

@@ -24,6 +24,7 @@
 #include <optional>
 #include <string>
 #include <string_view>
+#include <unordered_set>
 
 // CommonLibSSE-NG generates __EnchantersHandbookPlugin.cpp with "..."sv.
 using namespace std::string_view_literals;
