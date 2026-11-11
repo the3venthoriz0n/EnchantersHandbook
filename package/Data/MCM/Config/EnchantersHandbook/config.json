@@ -1,0 +1,65 @@
+{
+	"modName": "EnchantersHandbook",
+	"displayName": "Enchanter's Handbook",
+	"minMcmVersion": 9,
+	"cursorFillMode": "topToBottom",
+	"pages": [{
+		"pageDisplayName": "Settings",
+		"cursorFillMode": "topToBottom",
+		"content": [
+			{
+				"text": "Known enchantment marker",
+				"type": "header"
+			},
+			{
+				"id": "bEnabled:General",
+				"text": "Mark known enchantments",
+				"type": "toggle",
+				"help": "Add a marker to enchanted items whose enchantment you have already learned, in merchant, container and inventory lists.",
+				"valueOptions": {
+					"sourceType": "ModSettingBool"
+				}
+			},
+			{
+				"id": "bShowOnOwnItems:General",
+				"text": "Also mark my own inventory",
+				"type": "toggle",
+				"help": "When off, only merchant, container and gift lists are marked.",
+				"valueOptions": {
+					"sourceType": "ModSettingBool"
+				}
+			},
+			{
+				"id": "sMarker:Marker",
+				"text": "Marker text",
+				"type": "textinput",
+				"help": "What is added to the item name. Plain letters and symbols such as [E] or * work in every font.",
+				"valueOptions": {
+					"sourceType": "ModSettingString"
+				}
+			},
+			{
+				"id": "bSuffix:Marker",
+				"text": "Marker after the name",
+				"type": "toggle",
+				"help": "On: 'Iron Sword [E]'. Off: '[E] Iron Sword' (this changes how the list sorts by name).",
+				"valueOptions": {
+					"sourceType": "ModSettingBool"
+				}
+			},
+			{
+				"text": "General",
+				"type": "header"
+			},
+			{
+				"id": "bDebug:General",
+				"text": "Debug logging",
+				"type": "toggle",
+				"help": "Write more detail to EnchantersHandbook.log.",
+				"valueOptions": {
+					"sourceType": "ModSettingBool"
+				}
+			}
+		]
+	}]
+}
