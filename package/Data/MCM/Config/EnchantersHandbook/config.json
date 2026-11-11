@@ -32,7 +32,7 @@
 			{
 				"id": "sMarker:Marker",
 				"text": "Known enchantment marker",
-				"type": "textinput",
+				"type": "input",
 				"help": "Added to the name of an enchanted item whose enchantment you have learned. Plain letters and symbols such as [v] or * work in every font.",
 				"valueOptions": {
 					"sourceType": "ModSettingString"
@@ -50,7 +50,7 @@
 			{
 				"id": "sBlockedMarker:Marker",
 				"text": "Cannot-disenchant marker",
-				"type": "textinput",
+				"type": "input",
 				"help": "Added to the name of those items. Default: [x].",
 				"valueOptions": {
 					"sourceType": "ModSettingString"
