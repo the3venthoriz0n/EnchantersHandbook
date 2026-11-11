@@ -15,38 +15,28 @@ namespace EnchantersHandbook::Markers
         constexpr auto kScanInterval = std::chrono::milliseconds(100);
         constexpr auto kConfigInterval = std::chrono::seconds(1);
 
-        // Skyrim records what you have learned per magic effect, not per enchantment: disenchanting
-        // teaches the effects, and the enchanting table lists known effects. An enchantment counts as
-        // known when it has effects and every one of them is known.
-        bool AllEffectsKnown(const RE::EnchantmentItem* a_enchantment)
-        {
-            if (!a_enchantment || a_enchantment->effects.empty()) {
-                return false;
-            }
-            for (const auto* effect : a_enchantment->effects) {
-                if (!effect || !effect->baseEffect || !effect->baseEffect->GetKnown()) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        bool AnyEffectKnown(const RE::EnchantmentItem* a_enchantment)
+        // The enchanting table lists enchantment *templates* ("Fire Damage", "Fortify Smithing"...).
+        // Every enchanted item's enchantment points at its template (data.baseEnchantment), and
+        // disenchanting is believed to flag that template as known. Player-made enchantments point at
+        // the template they were made from. If there is no template the enchantment is its own.
+        const RE::EnchantmentItem* TemplateOf(const RE::EnchantmentItem* a_enchantment)
         {
             if (!a_enchantment) {
-                return false;
+                return nullptr;
             }
-            for (const auto* effect : a_enchantment->effects) {
-                if (effect && effect->baseEffect && effect->baseEffect->GetKnown()) {
-                    return true;
-                }
-            }
-            return false;
+            const auto* base = a_enchantment->data.baseEnchantment;
+            return base ? base : a_enchantment;
+        }
+
+        bool IsKnown(const RE::EnchantmentItem* a_enchantment)
+        {
+            const auto* templ = TemplateOf(a_enchantment);
+            return templ && (templ->GetKnown() || a_enchantment->GetKnown());
         }
 
         bool HasKnownEnchantment(RE::InventoryEntryData* a_entry)
         {
-            return a_entry && AllEffectsKnown(a_entry->GetEnchantment());
+            return a_entry && IsKnown(a_entry->GetEnchantment());
         }
 
         // Diagnostics: how many enchantments and magic effects in the whole game carry the "known"
@@ -83,7 +73,7 @@ namespace EnchantersHandbook::Markers
             int enchanted{};
             int known{};
             int enchantmentFlagKnown{};  // diagnostics: the old per-enchantment flag
-            int someEffectKnown{};       // diagnostics: partly known enchantments
+            int templateKnown{};         // diagnostics: the template carries the flag
             int noText{};
             int alreadyMarked{};
             int marked{};
@@ -105,7 +95,7 @@ namespace EnchantersHandbook::Markers
                 if (const auto* enchantment = item->data.objDesc->GetEnchantment()) {
                     ++a_counts.enchanted;
                     a_counts.enchantmentFlagKnown += enchantment->GetKnown() ? 1 : 0;
-                    a_counts.someEffectKnown += AnyEffectKnown(enchantment) ? 1 : 0;
+                    a_counts.templateKnown += (TemplateOf(enchantment) && TemplateOf(enchantment)->GetKnown()) ? 1 : 0;
                 }
                 if (!HasKnownEnchantment(item->data.objDesc)) {
                     continue;
@@ -186,8 +176,8 @@ namespace EnchantersHandbook::Markers
             Counts     counts;
             const bool changed = MarkItems(a_list, settings, counts);
             report(std::format(
-                "items={} enchanted={} known={} (enchantmentFlag={} someEffect={}) marked={} alreadyMarked={} noText={} setFailed={}",
-                counts.total, counts.enchanted, counts.known, counts.enchantmentFlagKnown, counts.someEffectKnown, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed));
+                "items={} enchanted={} known={} (enchantmentFlag={} template={}) marked={} alreadyMarked={} noText={} setFailed={}",
+                counts.total, counts.enchanted, counts.known, counts.enchantmentFlagKnown, counts.templateKnown, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed));
 
             if (changed) {
                 // Tell the (SkyUI) list its data changed so it redraws with the new names.

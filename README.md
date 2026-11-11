@@ -2,7 +2,7 @@
 
 Quality-of-life tools for enchanters in Skyrim Special Edition / Anniversary Edition.
 
-Status: **0.1.2 prototype.** It compiles; it has not been played yet. See "Known unknowns".
+Status: **0.1.3 prototype.** It compiles; it has not been played yet. See "Known unknowns".
 
 ## Features
 
