@@ -86,7 +86,7 @@ namespace EnchantersHandbook::Config
             s.marker = Text("Marker", "sMarker", s.marker);
             s.markBlocked = Flag("Marker", "bMarkBlocked", s.markBlocked);
             s.blockedMarker = Text("Marker", "sBlockedMarker", s.blockedMarker);
-            s.color = Flag("Marker", "bColor", s.color);
+            s.tintIcons = Flag("Marker", "bTintIcons", s.tintIcons);
             s.debug = Flag("General", "bDebug", s.debug);
             return s;
         }

@@ -2,7 +2,7 @@
 
 Quality-of-life tools for enchanters in Skyrim Special Edition / Anniversary Edition.
 
-Status: **0.2.4 prototype.** It compiles; it has not been played yet. See "Known unknowns".
+Status: **0.2.5 prototype.** It compiles; it has not been played yet. See "Known unknowns".
 
 ## Features
 
@@ -37,8 +37,8 @@ the two markers, and whether they go before or after the name. Without MCM Helpe
 The marker is plain text because Skyrim's fonts lack most symbols. A real graphical icon needs a
 modified SkyUI interface file and is a possible future step.
 
-An experimental "Colored markers" option wraps the markers in color codes (green known, red cannot-disenchant).
-It only works if the item list renders them; if item names show raw `<font ...>` text, turn it off.
+An experimental "Tint item icons" option colors the small item icon at the left of each row (green known, red
+cannot-disenchant) through SkyUI. Colored text is not possible: SkyUI draws item names as plain text.
 
 ## Known unknowns (test these first)
 

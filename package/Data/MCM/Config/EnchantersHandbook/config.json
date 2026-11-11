@@ -66,10 +66,10 @@
 				}
 			},
 			{
-				"id": "bColor:Marker",
-				"text": "Colored markers (experimental)",
+				"id": "bTintIcons:Marker",
+				"text": "Tint item icons (experimental)",
 				"type": "toggle",
-				"help": "Green for known, red for cannot-disenchant. Only works if your item list renders color codes; if you see text like <font color=...> in item names, turn this off.",
+				"help": "Tint the small item icon at the left of each row green for known enchantments and red for items that cannot be disenchanted. Needs SkyUI.",
 				"valueOptions": {
 					"sourceType": "ModSettingBool"
 				}

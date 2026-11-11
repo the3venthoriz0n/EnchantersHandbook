@@ -123,14 +123,27 @@ namespace EnchantersHandbook::Markers
                 }
                 kind == Kind::kKnown ? ++a_counts.known : ++a_counts.blocked;
 
-                const std::string& plain = kind == Kind::kKnown ? a_settings.marker : a_settings.blockedMarker;
-                if (plain.empty()) {
+                // Experimental: tint the item-type icon at the left of the row (SkyUI reads "iconColor").
+                if (a_settings.tintIcons) {
+                    constexpr double kGreen = 0x5BC85B;
+                    constexpr double kRed = 0xE04B4B;
+                    const double     wanted = kind == Kind::kKnown ? kGreen : kRed;
+
+                    RE::GFxValue current;
+                    if (!item->obj.GetMember("iconColor", &current) || !current.IsNumber() || current.GetNumber() != wanted) {
+                        RE::GFxValue color;
+                        color.SetNumber(wanted);
+                        if (item->obj.SetMember("iconColor", color)) {
+                            ++a_counts.marked;
+                            changed = true;
+                        }
+                    }
+                }
+
+                const std::string& marker = kind == Kind::kKnown ? a_settings.marker : a_settings.blockedMarker;
+                if (marker.empty()) {
                     continue;
                 }
-                // Experimental colour: green for known, red for cannot-disenchant.
-                const std::string marker = a_settings.color
-                    ? std::format("<font color='{}'>{}</font>", kind == Kind::kKnown ? "#5BC85B" : "#E04B4B", plain)
-                    : plain;
 
                 RE::GFxValue text;
                 if (!item->obj.GetMember("text", &text) || !text.IsString()) {

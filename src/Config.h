@@ -14,7 +14,7 @@ namespace EnchantersHandbook::Config
         std::string marker{ "[v]" };         // known enchantment; plain ASCII: Skyrim's fonts lack most symbols
         bool        markBlocked{ true };     // also flag enchanted items the game will not let you disenchant
         std::string blockedMarker{ "[x]" };
-        bool        color{ false };          // experimental: wrap markers in <font color> (green / red); needs a list that renders HTML
+        bool        tintIcons{ false };      // experimental: tint the item icon green (known) / red (cannot disenchant)
         bool        debug{ false };
     };
 
