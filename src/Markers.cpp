@@ -15,15 +15,38 @@ namespace EnchantersHandbook::Markers
         constexpr auto kScanInterval = std::chrono::milliseconds(100);
         constexpr auto kConfigInterval = std::chrono::seconds(1);
 
-        // True if the item carries an enchantment the player has learned (same flag the vanilla
-        // enchanting table uses to show "known"). Works for base and player-made enchantments.
-        bool HasKnownEnchantment(RE::InventoryEntryData* a_entry)
+        // Skyrim records what you have learned per magic effect, not per enchantment: disenchanting
+        // teaches the effects, and the enchanting table lists known effects. An enchantment counts as
+        // known when it has effects and every one of them is known.
+        bool AllEffectsKnown(const RE::EnchantmentItem* a_enchantment)
         {
-            if (!a_entry) {
+            if (!a_enchantment || a_enchantment->effects.empty()) {
                 return false;
             }
-            const auto* enchantment = a_entry->GetEnchantment();
-            return enchantment && enchantment->GetKnown();
+            for (const auto* effect : a_enchantment->effects) {
+                if (!effect || !effect->baseEffect || !effect->baseEffect->GetKnown()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        bool AnyEffectKnown(const RE::EnchantmentItem* a_enchantment)
+        {
+            if (!a_enchantment) {
+                return false;
+            }
+            for (const auto* effect : a_enchantment->effects) {
+                if (effect && effect->baseEffect && effect->baseEffect->GetKnown()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        bool HasKnownEnchantment(RE::InventoryEntryData* a_entry)
+        {
+            return a_entry && AllEffectsKnown(a_entry->GetEnchantment());
         }
 
         struct Counts
@@ -31,6 +54,8 @@ namespace EnchantersHandbook::Markers
             int total{};
             int enchanted{};
             int known{};
+            int enchantmentFlagKnown{};  // diagnostics: the old per-enchantment flag
+            int someEffectKnown{};       // diagnostics: partly known enchantments
             int noText{};
             int alreadyMarked{};
             int marked{};
@@ -49,8 +74,10 @@ namespace EnchantersHandbook::Markers
                 if (!item || !item->data.objDesc) {
                     continue;
                 }
-                if (item->data.objDesc->GetEnchantment()) {
+                if (const auto* enchantment = item->data.objDesc->GetEnchantment()) {
                     ++a_counts.enchanted;
+                    a_counts.enchantmentFlagKnown += enchantment->GetKnown() ? 1 : 0;
+                    a_counts.someEffectKnown += AnyEffectKnown(enchantment) ? 1 : 0;
                 }
                 if (!HasKnownEnchantment(item->data.objDesc)) {
                     continue;
@@ -129,8 +156,8 @@ namespace EnchantersHandbook::Markers
             Counts     counts;
             const bool changed = MarkItems(a_list, settings, counts);
             report(std::format(
-                "items={} enchanted={} known={} marked={} alreadyMarked={} noText={} setFailed={}",
-                counts.total, counts.enchanted, counts.known, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed));
+                "items={} enchanted={} known={} (enchantmentFlag={} someEffect={}) marked={} alreadyMarked={} noText={} setFailed={}",
+                counts.total, counts.enchanted, counts.known, counts.enchantmentFlagKnown, counts.someEffectKnown, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed));
 
             if (changed) {
                 // Tell the (SkyUI) list its data changed so it redraws with the new names.
