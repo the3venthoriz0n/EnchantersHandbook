@@ -2,7 +2,7 @@
 
 Quality-of-life tools for enchanters in Skyrim Special Edition / Anniversary Edition.
 
-Status: **0.2.1 prototype.** It compiles; it has not been played yet. See "Known unknowns".
+Status: **0.2.2 prototype.** It compiles; it has not been played yet. See "Known unknowns".
 
 ## Features
 
@@ -22,7 +22,8 @@ there is nothing to learn from them.
 
 - Skyrim SE / AE 1.6.1170 or 1.7.104, with SKSE and Address Library
 - SkyUI (item lists are refreshed through its list)
-- MCM Helper, for the settings menu (optional; the files can be edited by hand)
+- MCM Helper, for the settings menu (optional; the files can be edited by hand). The mod ships a small empty
+  `EnchantersHandbook.esp` (light plugin, no records): MCM Helper only lists a mod whose plugin is loaded
 
 ## Settings
 
