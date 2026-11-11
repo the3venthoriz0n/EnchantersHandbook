@@ -11,7 +11,10 @@ namespace EnchantersHandbook::Config
         bool        enabled{ true };
         bool        showOnOwnItems{ true };  // also mark items in your own inventory, not only merchants and containers
         bool        suffix{ true };          // marker after the item name (keeps name sorting intact); false = before
-        std::string marker{ "[E]" };         // plain ASCII: Skyrim's fonts lack most symbols
+        std::string marker{ "[v]" };         // known enchantment; plain ASCII: Skyrim's fonts lack most symbols
+        bool        markBlocked{ true };     // also flag enchanted items the game will not let you disenchant
+        std::string blockedMarker{ "[x]" };
+        bool        color{ false };          // experimental: wrap markers in <font color> (green / red); needs a list that renders HTML
         bool        debug{ false };
     };
 

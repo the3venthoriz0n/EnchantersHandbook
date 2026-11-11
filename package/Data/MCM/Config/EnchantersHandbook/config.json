@@ -31,9 +31,27 @@
 			},
 			{
 				"id": "sMarker:Marker",
-				"text": "Marker text",
+				"text": "Known enchantment marker",
 				"type": "textinput",
-				"help": "What is added to the item name. Plain letters and symbols such as [E] or * work in every font.",
+				"help": "Added to the name of an enchanted item whose enchantment you have learned. Plain letters and symbols such as [v] or * work in every font.",
+				"valueOptions": {
+					"sourceType": "ModSettingString"
+				}
+			},
+			{
+				"id": "bMarkBlocked:Marker",
+				"text": "Mark items that cannot be disenchanted",
+				"type": "toggle",
+				"help": "Flag enchanted items the game will not let you disenchant, such as staves and unique artifacts, so you do not look for their enchantment.",
+				"valueOptions": {
+					"sourceType": "ModSettingBool"
+				}
+			},
+			{
+				"id": "sBlockedMarker:Marker",
+				"text": "Cannot-disenchant marker",
+				"type": "textinput",
+				"help": "Added to the name of those items. Default: [x].",
 				"valueOptions": {
 					"sourceType": "ModSettingString"
 				}
@@ -42,7 +60,16 @@
 				"id": "bSuffix:Marker",
 				"text": "Marker after the name",
 				"type": "toggle",
-				"help": "On: 'Iron Sword [E]'. Off: '[E] Iron Sword' (this changes how the list sorts by name).",
+				"help": "On: 'Iron Sword [v]'. Off: '[v] Iron Sword' (this changes how the list sorts by name).",
+				"valueOptions": {
+					"sourceType": "ModSettingBool"
+				}
+			},
+			{
+				"id": "bColor:Marker",
+				"text": "Colored markers (experimental)",
+				"type": "toggle",
+				"help": "Green for known, red for cannot-disenchant. Only works if your item list renders color codes; if you see text like <font color=...> in item names, turn this off.",
 				"valueOptions": {
 					"sourceType": "ModSettingBool"
 				}

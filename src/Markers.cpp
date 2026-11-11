@@ -15,24 +15,22 @@ namespace EnchantersHandbook::Markers
         constexpr auto kScanInterval = std::chrono::milliseconds(100);
         constexpr auto kConfigInterval = std::chrono::seconds(1);
 
-        // The enchanting table lists enchantment *templates* ("Fire Damage", "Fortify Smithing"...).
-        // Every enchanted item's enchantment points at its template (data.baseEnchantment), and
-        // disenchanting is believed to flag that template as known. Player-made enchantments point at
-        // the template they were made from. If there is no template the enchantment is its own.
-        const RE::EnchantmentItem* TemplateOf(const RE::EnchantmentItem* a_enchantment)
+        // Vanilla keyword "MagicDisallowEnchanting": the game refuses to enchant or disenchant
+        // items that carry it (staves, unique artifacts).
+        constexpr RE::FormID kDisallowEnchanting = 0x000C27BD;
+
+        enum class Kind
         {
-            if (!a_enchantment) {
-                return nullptr;
-            }
-            const auto* base = a_enchantment->data.baseEnchantment;
-            return base ? base : a_enchantment;
-        }
+            kNone,
+            kKnown,    // enchantment already learned
+            kBlocked,  // enchanted, but the game will not let you disenchant it
+        };
 
         using EffectSet = std::unordered_set<const RE::EffectSetting*>;
 
-        // Every magic effect that appears in a known enchantment template. This is what the enchanting
-        // table lets you reuse, so any enchantment made only of these effects is one you can make.
-        // Covers enchantments you made yourself, which do not point at a known template.
+        // Every magic effect that appears in a known enchantment. The enchanting table lists
+        // enchantment templates and learning one flags it as known, so any enchantment made only of
+        // these effects is one you can make. This also covers enchantments you made yourself.
         EffectSet CollectKnownEffects()
         {
             EffectSet result;
@@ -51,9 +49,20 @@ namespace EnchantersHandbook::Markers
             return result;
         }
 
-        bool EffectsKnown(const RE::EnchantmentItem* a_enchantment, const EffectSet& a_known)
+        bool IsKnown(const RE::EnchantmentItem* a_enchantment, const EffectSet& a_known)
         {
-            if (!a_enchantment || a_enchantment->effects.empty()) {
+            if (!a_enchantment) {
+                return false;
+            }
+
+            // The item's enchantment, or the template it was made from, is flagged as known.
+            const auto* base = a_enchantment->data.baseEnchantment;
+            if (a_enchantment->GetKnown() || (base && base->GetKnown())) {
+                return true;
+            }
+
+            // Otherwise every effect in it is one you have already learned.
+            if (a_enchantment->effects.empty()) {
                 return false;
             }
             for (const auto* effect : a_enchantment->effects) {
@@ -64,126 +73,81 @@ namespace EnchantersHandbook::Markers
             return true;
         }
 
-        bool IsKnown(const RE::EnchantmentItem* a_enchantment, const EffectSet& a_known)
+        bool IsBlocked(const RE::TESBoundObject* a_object)
         {
-            const auto* templ = TemplateOf(a_enchantment);
-            return templ && (templ->GetKnown() || a_enchantment->GetKnown() || EffectsKnown(a_enchantment, a_known));
+            const auto* keywords = a_object ? a_object->As<RE::BGSKeywordForm>() : nullptr;
+            return keywords && keywords->HasKeywordID(kDisallowEnchanting);
         }
 
-        bool HasKnownEnchantment(RE::InventoryEntryData* a_entry, const EffectSet& a_known)
+        Kind Classify(RE::InventoryEntryData* a_entry, const EffectSet& a_known, const Config::Settings& a_settings)
         {
-            return a_entry && IsKnown(a_entry->GetEnchantment(), a_known);
-        }
-
-        // Diagnostics: one line describing an enchanted item that was NOT marked.
-        std::string DescribeUnmarked(RE::InventoryEntryData* a_entry, const EffectSet& a_known)
-        {
+            if (!a_entry) {
+                return Kind::kNone;
+            }
             const auto* enchantment = a_entry->GetEnchantment();
-            const auto* base = enchantment->data.baseEnchantment;
-            std::string effects;
-            for (const auto* effect : enchantment->effects) {
-                if (effect && effect->baseEffect) {
-                    effects += std::format(" {:08X}:{}{}", effect->baseEffect->GetFormID(), effect->baseEffect->GetName(),
-                        a_known.contains(effect->baseEffect) ? "(known)" : "");
-                }
+            if (!enchantment) {
+                return Kind::kNone;
             }
-            return std::format("    unmarked '{}' ench={:08X}:'{}' base={} effects:{}",
-                a_entry->GetDisplayName() ? a_entry->GetDisplayName() : "?",
-                enchantment->GetFormID(), enchantment->GetName(),
-                base ? std::format("{:08X}:'{}' known={}", base->GetFormID(), base->GetName(), base->GetKnown()) : std::string("none"),
-                effects);
-        }
-
-        // Diagnostics: how many enchantments and magic effects in the whole game carry the "known"
-        // flag, with a few names. Shows which flag the game really sets when you disenchant.
-        template <class T>
-        std::string DescribeKnown(const char* a_label)
-        {
-            auto* data = RE::TESDataHandler::GetSingleton();
-            if (!data) {
-                return std::string(a_label) + ": no data handler";
+            if (IsBlocked(a_entry->GetObject())) {
+                return a_settings.markBlocked ? Kind::kBlocked : Kind::kNone;
             }
-            int         total = 0;
-            int         known = 0;
-            int         rawBit = 0;
-            std::string names;
-            for (const auto* form : data->GetFormArray<T>()) {
-                if (!form) {
-                    continue;
-                }
-                ++total;
-                rawBit += (static_cast<std::uint32_t>(form->formFlags) >> 6) & 1;
-                if (form->GetKnown()) {
-                    if (++known <= 8) {
-                        names += std::format(" {:08X}:{}", form->GetFormID(), form->GetName());
-                    }
-                }
-            }
-            return std::format("{}: total={} known={} rawBit6={}{}", a_label, total, known, rawBit, names);
+            return IsKnown(enchantment, a_known) ? Kind::kKnown : Kind::kNone;
         }
 
         struct Counts
         {
-            int total{};
             int enchanted{};
             int known{};
-            int enchantmentFlagKnown{};  // diagnostics: the old per-enchantment flag
-            int templateKnown{};         // diagnostics: the template carries the flag
-            int noText{};
-            int alreadyMarked{};
+            int blocked{};
             int marked{};
-            int setFailed{};
-            int samples{};
-            std::string sampleText;
-
-            
         };
 
-        // Adds the marker to every list entry whose item has a known enchantment.
-        // Returns true if any entry changed.
-        bool MarkItems(RE::ItemList* a_list, const Config::Settings& a_settings, const EffectSet& a_known, Counts& a_counts)
+        bool HasMarker(const std::string& a_name, const std::string& a_marker, bool a_suffix)
         {
-            bool changed = false;
+            return a_suffix ? a_name.ends_with(a_marker) : a_name.starts_with(a_marker);
+        }
+
+        // Adds the marker to every list entry that needs one. Returns true if any entry changed.
+        bool MarkItems(RE::ItemList* a_list, const Config::Settings& a_settings, Counts& a_counts)
+        {
+            const auto known = CollectKnownEffects();
+            bool       changed = false;
+
             for (auto* item : a_list->items) {
-                ++a_counts.total;
-                if (!item || !item->data.objDesc) {
+                if (!item) {
                     continue;
                 }
-                if (const auto* enchantment = item->data.objDesc->GetEnchantment()) {
-                    ++a_counts.enchanted;
-                    a_counts.enchantmentFlagKnown += enchantment->GetKnown() ? 1 : 0;
-                    a_counts.templateKnown += (TemplateOf(enchantment) && TemplateOf(enchantment)->GetKnown()) ? 1 : 0;
-                }
-                if (!HasKnownEnchantment(item->data.objDesc, a_known)) {
-                    if (item->data.objDesc->GetEnchantment() && a_counts.samples < 12) {
-                        ++a_counts.samples;
-                        a_counts.sampleText += '\n' + DescribeUnmarked(item->data.objDesc, a_known);
-                    }
+                const auto kind = Classify(item->data.objDesc, known, a_settings);
+                if (kind == Kind::kNone) {
                     continue;
                 }
-                ++a_counts.known;
+                kind == Kind::kKnown ? ++a_counts.known : ++a_counts.blocked;
+
+                const std::string& plain = kind == Kind::kKnown ? a_settings.marker : a_settings.blockedMarker;
+                if (plain.empty()) {
+                    continue;
+                }
+                // Experimental colour: green for known, red for cannot-disenchant.
+                const std::string marker = a_settings.color
+                    ? std::format("<font color='{}'>{}</font>", kind == Kind::kKnown ? "#5BC85B" : "#E04B4B", plain)
+                    : plain;
 
                 RE::GFxValue text;
                 if (!item->obj.GetMember("text", &text) || !text.IsString()) {
-                    ++a_counts.noText;
                     continue;
                 }
 
                 std::string name = text.GetString();
-                const bool  already = a_settings.suffix ? name.ends_with(a_settings.marker) : name.starts_with(a_settings.marker);
-                if (already) {
-                    ++a_counts.alreadyMarked;
+                if (HasMarker(name, marker, a_settings.suffix)) {
                     continue;
                 }
 
-                name = a_settings.suffix ? name + " " + a_settings.marker : a_settings.marker + " " + name;
+                name = a_settings.suffix ? name + " " + marker : marker + " " + name;
                 RE::GFxValue newText;
                 newText.SetString(name);
                 if (item->obj.SetMember("text", newText)) {
                     ++a_counts.marked;
                     changed = true;
-                } else {
-                    ++a_counts.setFailed;
                 }
             }
             return changed;
@@ -193,6 +157,7 @@ namespace EnchantersHandbook::Markers
         {
             static Clock::time_point lastScan{};
             static Clock::time_point lastConfig{};
+            static std::string       lastReport;
 
             const auto now = Clock::now();
             if (now - lastScan < kScanInterval) {
@@ -205,40 +170,24 @@ namespace EnchantersHandbook::Markers
                 Config::ReloadIfChanged();
             }
 
-            // Diagnostics: log what a menu scan sees, but only when it changes, so the log stays short.
-            static std::string lastState;
-            const auto         report = [&](const std::string& a_state) {
-                if (a_state != lastState) {
-                    lastState = a_state;
-                    spdlog::info("{}: {}", a_menuName, a_state);
-                    spdlog::info("  game-wide {}", DescribeKnown<RE::EnchantmentItem>("enchantments"));
-                    spdlog::info("  game-wide {}", DescribeKnown<RE::EffectSetting>("magic effects"));
-                }
-            };
-
             const auto settings = Config::Get();
-            if (!settings.enabled || settings.marker.empty() || (a_ownInventory && !settings.showOnOwnItems)) {
-                report("skipped by settings");
+            if (!settings.enabled || (a_ownInventory && !settings.showOnOwnItems)) {
                 return;
             }
-            if (!a_list) {
-                report("no item list");
-                return;
-            }
-            if (a_list->updatePending) {
-                report("item list update pending");
-                return;
-            }
-            if (a_list->items.empty()) {
-                report("item list empty");
+            if (!a_list || a_list->updatePending || a_list->items.empty()) {
                 return;
             }
 
             Counts     counts;
-            const bool changed = MarkItems(a_list, settings, CollectKnownEffects(), counts);
-            report(std::format(
-                "items={} enchanted={} known={} (enchantmentFlag={} template={}) marked={} alreadyMarked={} noText={} setFailed={}",
-                counts.total, counts.enchanted, counts.known, counts.enchantmentFlagKnown, counts.templateKnown, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed) + counts.sampleText);
+            const bool changed = MarkItems(a_list, settings, counts);
+
+            if (settings.debug) {
+                const auto report = std::format("{}: known={} blocked={}", a_menuName, counts.known, counts.blocked);
+                if (report != lastReport) {
+                    lastReport = report;
+                    spdlog::debug("{}", report);
+                }
+            }
 
             if (changed) {
                 // Tell the (SkyUI) list its data changed so it redraws with the new names.

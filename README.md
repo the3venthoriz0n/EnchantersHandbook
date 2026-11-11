@@ -2,7 +2,7 @@
 
 Quality-of-life tools for enchanters in Skyrim Special Edition / Anniversary Edition.
 
-Status: **0.1.4 prototype.** It compiles; it has not been played yet. See "Known unknowns".
+Status: **0.2.1 prototype.** It compiles; it has not been played yet. See "Known unknowns".
 
 ## Features
 
@@ -10,9 +10,13 @@ Status: **0.1.4 prototype.** It compiles; it has not been played yet. See "Known
 
 Enchanted items whose enchantment you have already learned (by disenchanting an item that has it) get a
 marker in item lists, so you can tell at a glance while shopping or looting which enchantments you
-still need. It uses the same "known" flag the enchanting table uses.
+still need. An enchantment counts as known if you learned it, or if every effect in it is one you have learned
+(this includes enchantments you made yourself).
 
-Works in merchant (barter), container, gift and inventory menus. Example: `Iron Sword of Fire [E]`.
+Works in merchant (barter), container, gift and inventory menus. Example: `Iron Sword of Fire [v]`.
+
+Enchanted items the game will not let you disenchant (staves, unique artifacts) get `[x]` instead, so you know
+there is nothing to learn from them.
 
 ## Requirements
 
@@ -23,13 +27,16 @@ Works in merchant (barter), container, gift and inventory menus. Example: `Iron 
 ## Settings
 
 In the SkyUI Mod Configuration Menu under "Enchanter's Handbook": on/off, mark your own inventory,
-the marker text, and whether it goes before or after the name. Without MCM Helper edit:
+the two markers, and whether they go before or after the name. Without MCM Helper edit:
 
 - defaults, shipped with the mod: `Data\MCM\Config\EnchantersHandbook\settings.ini`
 - your overrides: `Data\MCM\Settings\EnchantersHandbook.ini` (wins over the default)
 
 The marker is plain text because Skyrim's fonts lack most symbols. A real graphical icon needs a
 modified SkyUI interface file and is a possible future step.
+
+An experimental "Colored markers" option wraps the markers in color codes (green known, red cannot-disenchant).
+It only works if the item list renders them; if item names show raw `<font ...>` text, turn it off.
 
 ## Known unknowns (test these first)
 
