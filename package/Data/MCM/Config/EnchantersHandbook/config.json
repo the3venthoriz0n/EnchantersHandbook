@@ -3,81 +3,77 @@
 	"displayName": "Enchanter's Handbook",
 	"minMcmVersion": 9,
 	"cursorFillMode": "topToBottom",
-	"pages": [{
-		"pageDisplayName": "Settings",
-		"cursorFillMode": "topToBottom",
-		"content": [
-			{
-				"text": "Known enchantment marker",
-				"type": "header"
-			},
-			{
-				"id": "bEnabled:General",
-				"text": "Mark known enchantments",
-				"type": "toggle",
-				"help": "Add a marker to enchanted items whose enchantment you have already learned, in merchant, container and inventory lists.",
-				"valueOptions": {
-					"sourceType": "ModSettingBool"
-				}
-			},
-			{
-				"id": "bShowOnOwnItems:General",
-				"text": "Also mark my own inventory",
-				"type": "toggle",
-				"help": "When off, only merchant, container and gift lists are marked.",
-				"valueOptions": {
-					"sourceType": "ModSettingBool"
-				}
-			},
-			{
-				"id": "sMarker:Marker",
-				"text": "Known enchantment marker",
-				"type": "input",
-				"help": "Added to the name of an enchanted item whose enchantment you have learned. Plain letters and symbols such as [v] or * work in every font.",
-				"valueOptions": {
-					"sourceType": "ModSettingString"
-				}
-			},
-			{
-				"id": "bMarkBlocked:Marker",
-				"text": "Mark items that cannot be disenchanted",
-				"type": "toggle",
-				"help": "Flag enchanted items the game will not let you disenchant, such as staves and unique artifacts, so you do not look for their enchantment.",
-				"valueOptions": {
-					"sourceType": "ModSettingBool"
-				}
-			},
-			{
-				"id": "sBlockedMarker:Marker",
-				"text": "Cannot-disenchant marker",
-				"type": "input",
-				"help": "Added to the name of those items. Default: [x].",
-				"valueOptions": {
-					"sourceType": "ModSettingString"
-				}
-			},
-			{
-				"id": "bSuffix:Marker",
-				"text": "Marker after the name",
-				"type": "toggle",
-				"help": "On: 'Iron Sword [v]'. Off: '[v] Iron Sword' (this changes how the list sorts by name).",
-				"valueOptions": {
-					"sourceType": "ModSettingBool"
-				}
-			},
-			{
-				"text": "General",
-				"type": "header"
-			},
-			{
-				"id": "bDebug:General",
-				"text": "Debug logging",
-				"type": "toggle",
-				"help": "Write more detail to EnchantersHandbook.log.",
-				"valueOptions": {
-					"sourceType": "ModSettingBool"
-				}
+	"content": [
+		{
+			"text": "Known enchantment marker",
+			"type": "header"
+		},
+		{
+			"id": "bEnabled:General",
+			"text": "Mark known enchantments",
+			"type": "toggle",
+			"help": "Add a marker to enchanted items whose enchantment you have already learned, in merchant, container and inventory lists.",
+			"valueOptions": {
+				"sourceType": "ModSettingBool"
 			}
-		]
-	}]
+		},
+		{
+			"id": "bShowOnOwnItems:General",
+			"text": "Also mark my own inventory",
+			"type": "toggle",
+			"help": "When off, only merchant, container and gift lists are marked.",
+			"valueOptions": {
+				"sourceType": "ModSettingBool"
+			}
+		},
+		{
+			"id": "sMarker:Marker",
+			"text": "Known enchantment marker",
+			"type": "input",
+			"help": "Added to the name of an enchanted item whose enchantment you have learned. Plain letters and symbols such as [v] or * work in every font.",
+			"valueOptions": {
+				"sourceType": "ModSettingString"
+			}
+		},
+		{
+			"id": "bMarkBlocked:Marker",
+			"text": "Mark items that cannot be disenchanted",
+			"type": "toggle",
+			"help": "Flag enchanted items the game will not let you disenchant, such as staves and unique artifacts, so you do not look for their enchantment.",
+			"valueOptions": {
+				"sourceType": "ModSettingBool"
+			}
+		},
+		{
+			"id": "sBlockedMarker:Marker",
+			"text": "Cannot-disenchant marker",
+			"type": "input",
+			"help": "Added to the name of those items. Default: [x].",
+			"valueOptions": {
+				"sourceType": "ModSettingString"
+			}
+		},
+		{
+			"id": "bSuffix:Marker",
+			"text": "Marker after the name",
+			"type": "toggle",
+			"help": "On: 'Iron Sword [v]'. Off: '[v] Iron Sword' (this changes how the list sorts by name).",
+			"valueOptions": {
+				"sourceType": "ModSettingBool"
+			}
+		},
+		{
+			"text": "General",
+			"type": "header"
+		},
+		{
+			"id": "bDebug:General",
+			"text": "Debug logging",
+			"type": "toggle",
+			"help": "Write more detail to EnchantersHandbook.log.",
+			"valueOptions": {
+				"sourceType": "ModSettingBool"
+			}
+		}
+	]
 }

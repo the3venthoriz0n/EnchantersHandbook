@@ -2,7 +2,7 @@
 
 Quality-of-life tools for enchanters in Skyrim Special Edition / Anniversary Edition.
 
-Status: **0.2.6 prototype.** It compiles; it has not been played yet. See "Known unknowns".
+Status: **0.2.7 prototype.** It compiles; it has not been played yet. See "Known unknowns".
 
 ## Features
 
@@ -44,6 +44,15 @@ Colored markers and tinted icons are not possible: SkyUI draws item names as pla
 - Whether the marker shows in each menu and the list redraws without flicker or losing your selection.
 - Whether items you enchanted yourself count as "known" (they use a player-made enchantment form).
 - If the marker never appears, check `Documents\My Games\Skyrim Special Edition\SKSE\EnchantersHandbook.log`.
+
+## Troubleshooting
+
+- **No "Enchanter's Handbook" entry in the MCM:** enable `EnchantersHandbook.esp` in your plugin list (new plugins
+  often arrive disabled), make sure MCM Helper is installed, and load a save. Then check
+  `Documents\My Games\Skyrim Special Edition\SKSE\MCMHelper.log`: it should list the mod, and a line such as
+  `Failed to parse config for EnchantersHandbook` means the config was rejected.
+- **No markers on items:** check `Documents\My Games\Skyrim Special Edition\SKSE\EnchantersHandbook.log` for the
+  `loading` and `Item menu hooks installed` lines.
 
 ## Build
 
