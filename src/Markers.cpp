@@ -26,36 +26,64 @@ namespace EnchantersHandbook::Markers
             return enchantment && enchantment->GetKnown();
         }
 
+        struct Counts
+        {
+            int total{};
+            int enchanted{};
+            int known{};
+            int noText{};
+            int alreadyMarked{};
+            int marked{};
+            int setFailed{};
+
+            bool operator==(const Counts&) const = default;
+        };
+
         // Adds the marker to every list entry whose item has a known enchantment.
         // Returns true if any entry changed.
-        bool MarkItems(RE::ItemList* a_list, const Config::Settings& a_settings)
+        bool MarkItems(RE::ItemList* a_list, const Config::Settings& a_settings, Counts& a_counts)
         {
             bool changed = false;
             for (auto* item : a_list->items) {
-                if (!item || !HasKnownEnchantment(item->data.objDesc)) {
+                ++a_counts.total;
+                if (!item || !item->data.objDesc) {
                     continue;
                 }
+                if (item->data.objDesc->GetEnchantment()) {
+                    ++a_counts.enchanted;
+                }
+                if (!HasKnownEnchantment(item->data.objDesc)) {
+                    continue;
+                }
+                ++a_counts.known;
 
                 RE::GFxValue text;
                 if (!item->obj.GetMember("text", &text) || !text.IsString()) {
+                    ++a_counts.noText;
                     continue;
                 }
 
                 std::string name = text.GetString();
                 const bool  already = a_settings.suffix ? name.ends_with(a_settings.marker) : name.starts_with(a_settings.marker);
                 if (already) {
+                    ++a_counts.alreadyMarked;
                     continue;
                 }
 
                 name = a_settings.suffix ? name + " " + a_settings.marker : a_settings.marker + " " + name;
                 RE::GFxValue newText;
                 newText.SetString(name);
-                changed |= item->obj.SetMember("text", newText);
+                if (item->obj.SetMember("text", newText)) {
+                    ++a_counts.marked;
+                    changed = true;
+                } else {
+                    ++a_counts.setFailed;
+                }
             }
             return changed;
         }
 
-        void Apply(RE::ItemList* a_list, bool a_ownInventory)
+        void Apply(const char* a_menuName, RE::ItemList* a_list, bool a_ownInventory)
         {
             static Clock::time_point lastScan{};
             static Clock::time_point lastConfig{};
@@ -71,15 +99,40 @@ namespace EnchantersHandbook::Markers
                 Config::ReloadIfChanged();
             }
 
+            // Diagnostics: log what a menu scan sees, but only when it changes, so the log stays short.
+            static std::string lastState;
+            const auto         report = [&](const std::string& a_state) {
+                if (a_state != lastState) {
+                    lastState = a_state;
+                    spdlog::info("{}: {}", a_menuName, a_state);
+                }
+            };
+
             const auto settings = Config::Get();
             if (!settings.enabled || settings.marker.empty() || (a_ownInventory && !settings.showOnOwnItems)) {
+                report("skipped by settings");
                 return;
             }
-            if (!a_list || a_list->updatePending || a_list->items.empty()) {
+            if (!a_list) {
+                report("no item list");
+                return;
+            }
+            if (a_list->updatePending) {
+                report("item list update pending");
+                return;
+            }
+            if (a_list->items.empty()) {
+                report("item list empty");
                 return;
             }
 
-            if (MarkItems(a_list, settings)) {
+            Counts     counts;
+            const bool changed = MarkItems(a_list, settings, counts);
+            report(std::format(
+                "items={} enchanted={} known={} marked={} alreadyMarked={} noText={} setFailed={}",
+                counts.total, counts.enchanted, counts.known, counts.marked, counts.alreadyMarked, counts.noText, counts.setFailed));
+
+            if (changed) {
                 // Tell the (SkyUI) list its data changed so it redraws with the new names.
                 a_list->root.Invoke("InvalidateData");
             }
@@ -92,7 +145,7 @@ namespace EnchantersHandbook::Markers
             static void Thunk(RE::IMenu* a_menu, float a_interval, std::uint32_t a_currentTime)
             {
                 original(a_menu, a_interval, a_currentTime);
-                Apply(static_cast<Menu*>(a_menu)->GetRuntimeData().itemList, OwnInventory);
+                Apply(Menu::MENU_NAME.data(), static_cast<Menu*>(a_menu)->GetRuntimeData().itemList, OwnInventory);
             }
 
             static void Install()
