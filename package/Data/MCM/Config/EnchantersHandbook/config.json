@@ -66,15 +66,6 @@
 				}
 			},
 			{
-				"id": "bTintIcons:Marker",
-				"text": "Tint item icons (experimental)",
-				"type": "toggle",
-				"help": "Tint the small item icon at the left of each row green for known enchantments and red for items that cannot be disenchanted. Needs SkyUI.",
-				"valueOptions": {
-					"sourceType": "ModSettingBool"
-				}
-			},
-			{
 				"text": "General",
 				"type": "header"
 			},
