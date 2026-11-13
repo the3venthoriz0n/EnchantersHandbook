@@ -62,3 +62,13 @@ Run `build_release.bat` from a Visual Studio x64 developer prompt, then `make_ar
 ## License
 
 CommonLibSSE-NG is GPL-3.0-or-later and is linked into the plugin, so this plugin is GPL too (see COPYING).
+
+## Releasing
+
+Pushing a tag such as `v0.2.8` (it must match the version in `CMakeLists.txt` and the tagged commit must be on `main`) runs
+`.github/workflows/release.yml`: it builds on Windows, packages `EnchantersHandbook-<version>.zip`, creates a GitHub release, and
+uploads the zip to Nexus Mods as a new version of an existing file.
+
+One-time setup: create the Nexus mod page and upload the first zip by hand, then set the secret `NEXUSMODS_API_KEY` and the
+variables `NEXUS_FILE_ID` and `NEXUS_MOD_ID` (see the comments at the top of the workflow). Without them the Nexus step is skipped.
+The workflow has not been run yet, so the first run may need fixes.
