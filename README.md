@@ -65,10 +65,11 @@ CommonLibSSE-NG is GPL-3.0-or-later and is linked into the plugin, so this plugi
 
 ## Releasing
 
-Pushing a tag such as `v0.2.8` (it must match the version in `CMakeLists.txt` and the tagged commit must be on `main`) runs
-`.github/workflows/release.yml`: it builds on Windows, packages `EnchantersHandbook-<version>.zip`, creates a GitHub release, and
-uploads the zip to Nexus Mods as a new version of an existing file.
+To release, tag `main`: `git tag v0.2.8 && git push origin v0.2.8`. The tag is the version: the workflow `.github/workflows/release.yml`
+stamps it into `CMakeLists.txt`, `vcpkg.json`, `src/main.cpp` and `tools/make_archive.ps1` (it stops if any of them does not match
+exactly once), builds on Windows, packages the zip, creates a GitHub release, uploads the zip to Nexus Mods as a new version of the
+existing file, and finally commits the bumped version numbers back to `main` (if `main` moved in the meantime, or is protected,
+that last step only warns). The tag must look like `v1.2.3` and its commit must be on `main`.
 
-One-time setup: create the Nexus mod page and upload the first zip by hand, then set the secret `NEXUSMODS_API_KEY` and the
-variables `NEXUS_FILE_ID` and `NEXUS_MOD_ID` (see the comments at the top of the workflow). Without them the Nexus step is skipped.
-The workflow has not been run yet, so the first run may need fixes.
+One-time setup (done): secret `NEXUSMODS_API_KEY` and variables `NEXUS_FILE_ID` and `NEXUS_MOD_ID`; without them the Nexus step is
+skipped. The workflow has not been run yet, so the first run may need fixes.
