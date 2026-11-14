@@ -7,7 +7,7 @@ $root = Split-Path -Parent $PSScriptRoot
 $data = Join-Path $root "package\Data"
 $dll  = Join-Path $data "SKSE\Plugins\EnchantersHandbook.dll"
 $dist = Join-Path $root "dist"
-$zip  = Join-Path $dist ("EnchantersHandbook-{0}.zip" -f $Version)
+$zip  = Join-Path $dist ("Enchanters_Handbook_{0}.zip" -f $Version)
 
 if (-not (Test-Path -LiteralPath $dll)) { throw "DLL not found: $dll. Build first (build_release.bat)." }
 

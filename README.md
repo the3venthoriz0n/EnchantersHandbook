@@ -69,7 +69,7 @@ CommonLibSSE-NG is GPL-3.0-or-later and is linked into the plugin, so this plugi
 
     git clone --recurse-submodules https://github.com/the3venthoriz0n/EnchantersHandbook.git
     build_release.bat        (from a Visual Studio x64 command prompt)
-    make_archive.bat         (writes dist\EnchantersHandbook-<version>.zip)
+    make_archive.bat         (writes dist\Enchanters_Handbook_<version>.zip)
 
 There is no automated test suite yet, so the check before a pull request is playing it: install the zip, open a merchant, a container and your inventory, and read `EnchantersHandbook.log` for errors.
 
@@ -86,7 +86,7 @@ There is no automated test suite yet, so the check before a pull request is play
 
 **To release, tag `main`.** The tag is the version, you never edit version numbers by hand.
 
-1. **Make sure `main` is what you want to ship.** Merge your work, build, install `dist\EnchantersHandbook-<version>.zip`, play it and read the log.
+1. **Make sure `main` is what you want to ship.** Merge your work, build, install `dist\Enchanters_Handbook_<version>.zip`, play it and read the log.
 2. **Pick the next version** (`vMAJOR.MINOR.PATCH`), higher than the version on Nexus.
 3. **Tag and push:**
 
@@ -95,7 +95,7 @@ There is no automated test suite yet, so the check before a pull request is play
         git push origin v0.2.8
 
 4. **Watch it:** `gh run watch` (or the Actions tab). The first run on a fresh cache takes a while; later runs reuse the cached vcpkg packages.
-5. **Check the result:** the run is green; the GitHub release has `EnchantersHandbook-<version>.zip`; the Nexus Files tab shows the new version of the existing file; `main` has a new "Bump version to ..." commit from `github-actions[bot]`, so pull it.
+5. **Check the result:** the run is green; the GitHub release has `Enchanters_Handbook_<version>.zip`; the Nexus Files tab shows the new version of the existing file; `main` has a new "Bump version to ..." commit from `github-actions[bot]`, so pull it.
 
 **What the workflow does** (`.github/workflows/release.yml`, on a Windows runner): checks the tag looks like `v1.2.3` and its commit is on `main`; stamps the version into `CMakeLists.txt`, `vcpkg.json`, `src/main.cpp` and `tools/make_archive.ps1` (it stops if any of them does not match exactly once); builds; runs `tools/make_archive.ps1`; creates the GitHub release with the zip; uploads the zip to Nexus Mods as a new version of the existing file with a changelog entry pointing at the GitHub release; then commits the bumped version numbers back to `main`.
 
