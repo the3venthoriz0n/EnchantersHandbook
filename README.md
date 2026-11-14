@@ -101,7 +101,7 @@ There is no automated test suite yet, so the check before a pull request is play
 
 **Dry run, no release:** Actions tab, "Release", "Run workflow" on `main`: builds and packages, uploads the zip as a build artifact, does not release, upload or commit.
 
-**One-time setup (done for this repo).** Create the Nexus mod page and upload the first zip by hand (the action only adds versions to an existing file), then:
+**One-time setup (done for this repo).** Create the Nexus mod page **under Skyrim Special Edition (not "Skyrim", which is the Legacy Edition: files from a Legacy page download into Vortex's `skyrim` folder and Vortex will not install them into a Special Edition game)** and upload the first zip by hand (the action only adds versions to an existing file), then:
 
     gh secret set NEXUSMODS_API_KEY --repo the3venthoriz0n/EnchantersHandbook          (paste your Nexus API key when asked)
     gh variable set NEXUS_FILE_ID --body <File ID> --repo the3venthoriz0n/EnchantersHandbook
@@ -109,4 +109,4 @@ There is no automated test suite yet, so the check before a pull request is play
 
 Both numbers are in the file's "Advanced" panel on Nexus: **File ID** and **Unique Mod ID** (the long number, not the number in the page address). Without the secret and `NEXUS_FILE_ID` the Nexus step is skipped and the GitHub release is still made.
 
-**If something goes wrong.** A wrong tag: delete it (`git push origin :refs/tags/vX.Y.Z`, `git tag -d vX.Y.Z`), fix, tag again. If the Nexus step fails after the version was created, the version is already on Nexus: do not re-push the same tag, ship the next patch version. If the bump commit is skipped, make the same four edits by hand or let the next release do it. After a build fix, use the dry run instead of pushing more tags.
+**If something goes wrong.** If Vortex downloads the file but never installs it, check that the Nexus page is under Skyrim Special Edition and that the download path in `%APPDATA%\Vortexortex.log` says `skyrimse`, not `skyrim` (pages cannot be moved between games; create a new page, upload the zip and set `NEXUS_FILE_ID` and `NEXUS_MOD_ID` from it). A wrong tag: delete it (`git push origin :refs/tags/vX.Y.Z`, `git tag -d vX.Y.Z`), fix, tag again. If the Nexus step fails after the version was created, the version is already on Nexus: do not re-push the same tag, ship the next patch version. If the bump commit is skipped, make the same four edits by hand or let the next release do it. After a build fix, use the dry run instead of pushing more tags.
