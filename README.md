@@ -101,6 +101,8 @@ There is no automated test suite yet, so the check before a pull request is play
 
 **What the workflow does** (`.github/workflows/release.yml`, on a Windows runner): checks the tag looks like `v1.2.3` and its commit is on `main`; stamps the version into `CMakeLists.txt`, `vcpkg.json`, `src/main.cpp` and `tools/make_archive.ps1` (it stops if any of them does not match exactly once); builds; runs `tools/make_archive.ps1`; creates the GitHub release with the zip; uploads the zip to Nexus Mods as a new version of the existing file with a changelog entry pointing at the GitHub release; then commits the bumped version numbers back to `main`.
 
+**Test builds, one tag per change.** A tag with a suffix, such as `v0.2.2-test1` or `v0.3.0-rc.1`, builds and tests the same way and creates a GitHub *pre-release* with `Enchanters_Handbook_0.2.2-test1.zip`, but it does not upload to Nexus and does not commit a version bump. Use one for every change you want kept as an artifact, and a plain `vX.Y.Z` tag for what you publish. All builds stay on the Releases page (and in the Actions run artifacts) so you can compare or roll back; the numeric part of the tag is what gets stamped into the build.
+
 **Dry run, no release:** Actions tab, "Release", "Run workflow" on `main`: builds and packages, uploads the zip as a build artifact, does not release, upload or commit.
 
 **One-time setup (done for this repo).** Create the Nexus mod page **under Skyrim Special Edition (not "Skyrim", which is the Legacy Edition: files from a Legacy page download into Vortex's `skyrim` folder and Vortex will not install them into a Special Edition game)** and upload the first zip by hand (the action only adds versions to an existing file), then:
