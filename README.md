@@ -59,6 +59,8 @@ Colored markers and tinted icons are not possible: SkyUI draws item names as pla
 Needs Visual Studio (C++), CMake and vcpkg (`VCPKG_ROOT`, default `C:\dev\vcpkg`).
 Run `build_release.bat` from a Visual Studio x64 developer prompt, then `make_archive.bat` for the zip.
 
+Packaging never overwrites or deletes an earlier build: if the zip name is already in `dist`, the new one gets a `_yyyyMMdd-HHmmss` suffix (for example `Enchanters_Handbook_0.2.7_20261114-160500.zip`), so versions sit side by side for rollback; the script prints the final path.
+
 ## License
 
 CommonLibSSE-NG is GPL-3.0-or-later and is linked into the plugin, so this plugin is GPL too (see COPYING).
